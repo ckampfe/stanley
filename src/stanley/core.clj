@@ -10,11 +10,11 @@
   (->> (File. dir)
        (.listFiles)
        (remove #(.isHidden %))
-       (remove #(.isDirectory %))))
+       (remove #(.isDirectory %))
+       (map #(.getCanonicalPath %))))
 
 (defn md-files [dir]
   (->> (files dir)
-       (map #(.getCanonicalPath %))
        (filter #(clojure.string/ends-with? % ".md"))))
 
 (defn get-content [post-string]
