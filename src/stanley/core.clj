@@ -1,0 +1,84 @@
+(ns stanley.core
+  (:require [stanley.templates :as templates]
+            [markdown.core :as md :refer [md-to-html-string]])
+  (:import [java.io File])
+  (:gen-class))
+
+(def build-dir "build")
+
+(defn files [dir]
+  (->> (File. dir)
+       (.listFiles)
+       (remove #(.isHidden %))
+       (remove #(.isDirectory %))))
+
+(defn md-files [dir]
+  (->> (files dir)
+       (map #(.getCanonicalPath %))
+       (filter #(clojure.string/ends-with? % ".md"))))
+
+(defn get-content [post-string]
+  (->> post-string
+       (#(clojure.string/split % #"\n"))
+       (drop 5)
+       (clojure.string/join "\n")))
+
+(defn get-frontmatter [post-string]
+  (->> post-string
+       (#(clojure.string/split % #"\n"))
+       (take 5) ;; first 5 lines
+       (drop 1) ;; drop initial "---"
+       (take-while #(not= (first %) \-))
+       (map #(clojure.string/split % #": ")) ;; split on ": "
+       (into {}))) ;; "drop keys, take values"
+
+(defn change-ext [filename n replacement]
+  (str (clojure.string/join
+        (drop-last n filename)) replacement))
+
+(defn to-build-dir [filename] (str build-dir "/" filename))
+
+(defn write! [names contents]
+  (dorun (map #(spit (to-build-dir %1) %2)
+              names
+              contents)))
+
+(defn -main
+  "I don't do a whole lot ... yet."
+  [& args]
+  (let [page-paths              (md-files "./pages")
+        page-file-names         (map #(last (clojure.string/split % #"/"))
+                                     page-paths)
+        html-page-names         (map #(change-ext % 3 ".html") page-file-names)
+        pages                   (map slurp page-paths)
+        page-contents           (map get-content pages)
+        page-frontmatters       (map get-frontmatter pages)
+        page-formatted-contents (map md/md-to-html-string page-contents)
+        page-titles             (map #(get % "title") page-frontmatters)
+        page-templates          (->> (map templates/page page-titles page-formatted-contents)
+                                     (map templates/layout page-titles))
+
+        post-paths              (reverse (md-files "./posts"))
+        post-file-names         (map #(last (clojure.string/split % #"/"))
+                                     post-paths)
+        html-post-names         (map #(change-ext % 3 ".html") post-file-names)
+        posts                   (map slurp post-paths)
+        post-frontmatters       (map get-frontmatter posts)
+        post-contents           (map get-content posts)
+        post-formatted-contents (map md/md-to-html-string post-contents)
+        post-titles             (map #(get % "title") post-frontmatters)
+        post-created-ats        (map #(get % "created") post-frontmatters)
+        post-templates          (->> (map templates/post post-titles
+                                          post-created-ats
+                                          post-formatted-contents)
+                                     (map templates/layout post-titles))
+
+        index-template (templates/layout "Clark Kampfe"
+                                         (templates/index html-post-names
+                                                          post-titles
+                                                          post-created-ats))]
+
+    (write! ["main.css"] [templates/css])
+    (write! html-page-names page-templates)
+    (write! html-post-names post-templates)
+    (write! ["index.html"] [index-template])))
