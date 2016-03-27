@@ -78,7 +78,7 @@
                                                           post-titles
                                                           post-created-ats))]
 
-    (write! ["main.css"] [templates/css])
+    (write! ["main.css"] [templates/stylesheet])
     (write! html-page-names page-templates)
     (write! html-post-names post-templates)
     (write! ["index.html"] [index-template])))
