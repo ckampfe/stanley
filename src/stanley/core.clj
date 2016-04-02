@@ -1,5 +1,6 @@
 (ns stanley.core
   (:require [stanley.templates :as templates]
+            [stanley.rss :as rss]
             [markdown.core :as md :refer [md-to-html-string]])
   (:import [java.io File])
   (:gen-class))
@@ -76,9 +77,15 @@
         index-template (templates/layout "Clark Kampfe"
                                          (templates/index html-post-names
                                                           post-titles
-                                                          post-created-ats))]
+                                                          post-created-ats))
+
+        rss-feed                (rss/feed post-titles
+                                          html-post-names
+                                          post-created-ats
+                                          post-formatted-contents)]
 
     (write! ["main.css"] [templates/stylesheet])
     (write! html-page-names page-templates)
     (write! html-post-names post-templates)
-    (write! ["index.html"] [index-template])))
+    (write! ["index.html"] [index-template])
+    (write! ["feed"] [rss-feed])))

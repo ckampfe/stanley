@@ -5,6 +5,7 @@
           :source-paths   #{"test"}
           :dependencies   '[[org.clojure/clojure "RELEASE"]
                             [markdown-clj "0.9.86"]
+                            [clj-rss "0.2.3"]
                             [hiccup "1.0.5"]
                             [adzerk/boot-test "RELEASE" :scope "test"]])
 
