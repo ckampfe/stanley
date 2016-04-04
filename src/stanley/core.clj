@@ -5,7 +5,7 @@
   (:import [java.io File])
   (:gen-class))
 
-(def build-dir "build")
+(def ^:dynamic build-dir "build")
 
 (defn files [dir]
   (->> (File. dir)
@@ -30,8 +30,8 @@
        (take 5) ;; first 5 lines
        (drop 1) ;; drop initial "---"
        (take-while #(not= (first %) \-))
-       (map #(clojure.string/split % #": ")) ;; split on ": "
-       (into {}))) ;; "drop keys, take values"
+       (map #(clojure.string/split % #": "))
+       (into {})))
 
 (defn change-ext [filename n replacement]
   (str (clojure.string/join
