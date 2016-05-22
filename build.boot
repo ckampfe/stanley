@@ -7,6 +7,7 @@
                             [markdown-clj "0.9.89"]
                             [clj-rss "0.2.3"]
                             [hiccup "1.0.5"]
+                            [garden "1.3.2"]
                             [adzerk/boot-test "RELEASE" :scope "test"]])
 
 (task-options!

@@ -1,188 +1,92 @@
 (ns stanley.templates
   (:use [hiccup.core]
-        [hiccup.page :refer [html5]]))
+        [hiccup.page :refer [html5]])
+  (:require [garden.core :refer [css]]))
 
-(def stylesheet "
-/*****************************************************************************/
-/*
-/* Common
-/*
-/*****************************************************************************/
+(def stylesheet (css
+                 [:* {:margin 0
+                      :padding 0
+                      :color "#444"}]
 
-/* Global Reset */
+                 [:html :body {:height "100%"}]
 
+                 [:body {:background-color "#F9F9F9"
+                         :font "13.34px monospace"
+                         :font-size "small"
+                         :text-align "center"}]
 
-* {
-  margin: 0;
-  padding: 0;
-  color: #444;
-}
+                 [:h1 :h2 :h3 :h4 :h5 :h6 {:font-size "100%"}]
 
-html, body { height: 100%; }
+                 [:h1 {:margin-bottom "1em"}]
 
-body {
-  background-color: #F9F9F9;
-  font: 13.34px monospace;
-  font-size: small;
-  text-align: center;
-}
+                 [:p {:margin "1em 0"}]
 
-h1, h2, h3, h4, h5, h6 {
-  font-size: 100%; }
+                 [:a {:color "#8085C1"
+                      :text-decoration "none"}
+                  [:&:hover {:color "#636B96"
+                             :text-decoration "underline"}]]
 
-h1 { margin-bottom: 1em; }
-p { margin: 1em 0; }
+                 [:ul.posts {:list-style-type "none"
+                             :margin-bottom "2em"}
+                  [:li {:line-height "1.50em"}]]
 
-a         { color: #8085C1; text-decoration: none; }
-a:hover   { color: #636B96; text-decoration: underline }
-// a:visited { color: gray; }
+                 [:li
+                  [:span {:float "right"
+                          :color "gray"}]]
 
-/*****************************************************************************/
-/*
-/* Home
-/*
-/*****************************************************************************/
-ul.posts {
-  list-style-type: none;
-  margin-bottom: 2em;
-}
+                 [:.site {:font-size "115%"
+                          :text-align "justify"
+                          :max-width "44em"
+                          :margin "3em auto 2em"
+                          :padding "0 7% 0"
+                          :line-height "1.5em"
+                          :display "inline-block"}
+                  [:#home {:min-width "44em"}]
+                  [:.header
+                   [:a {:font-weight 'bold
+                        :text-decoration "none"}]
+                   [:a.extra {:color "#aaa"
+                              :margin-left "1.3em"}
+                    [:&:hover {:color "#000"}]]]
+                  [:h1.title {:display "inline-block"
+                              :margin-bottom "2em"}
+                   [:a {:font-size "3em"
+                        :margin-left "-1em"
+                        :color "#F9F9F9"
+                        :background-color "#FF96A7"
+                        :padding "0.06em 0.06em 0.05em 0.06em"}
+                    [:&:hover {:color "gray"
+                               :background-color "#F9F9F9"}]]]]
 
-//post titles
-ul.posts li {
-  line-height: 1.75em;
-}
+                 [:.meta {:color "#aaa"}]
 
-// date
-ul.posts span {
-  color: #aaa;
-  font-family: \"Courier New\", monospace, Monaco;
-  font-size: 80%;
-}
+                 [:#selfie {:width "50%"}]
 
-li span {
-  float: right;
-  color: gray;
-}
+                 [:.footer {:font-size "85%"
+                            :color "#C8C8C8"
+                            :border-top "4px solid #eee"
+                            :margin-top "2em"
+                            :overlow "hidden"}
+                  [:.contact {:float "right"
+                              :margin-right "2em"}
+                   [:a {:color "#9FA6F0"
+                        :padding "0 0 0 8px"
+                        :margin "0 0 0 auto"}
+                    [:&:hover {:color "#636B96"}]]]
+                  [:p {:display "inline-flex"}]
+                  [:.rss {:margin-top "1.1em"
+                          :margin-right "-.2em"
+                          :float "right"}
+                   [:img {:border 0}]]]
 
-/*****************************************************************************/
-/*
-/* Site
-/*
-/*****************************************************************************/
-
-
-
-.site {
-  font-size: 115%;
-  text-align: justify;
-  max-width: 44em;
-  margin: 3em auto 2em;
-  padding: 0 7% 0;
-  line-height: 1.5em;
-  display: inline-block;
-}
-
-.site #home {
-  min-width: 44em;
-}
-
-.site .header a {
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.site .header h1.title {
-  display: inline-block;
-  margin-bottom: 2em;
-}
-
-.site .header h1.title a {
-  font-size: 3em;
-  margin-left: -1em;
-  color: #F9F9F9;
-  background-color: #FF96A7;
-  padding: 0.06em 0.06em 0.05em 0.06em;
-}
-
-.site .header h1.title a:hover {
-  color: gray;
-  background-color: #F9F9F9;
-}
-
-.site .header a.extra {
-  color: #aaa;
-  margin-left: 1.3em;
-}
-
-.site .header a.extra:hover {
-  color: #000;
-}
-
-.site .meta {
-  color: #aaa;
-}
-
-.site #selfie {
-  width: 50%;
-}
-
-.site .footer {
-  font-size: 85%;
-  color: #C8C8C8;
-  border-top: 4px solid #eee;
-  margin-top: 2em;
-  overflow: hidden;
-}
-
-.site .footer .contact {
-  float: right;
-  margin-right: 2em;
-}
-
-.site .footer .contact a {
-  color: #9FA6F0;
-  padding: 0 0 0 8px;
-  margin: 0 0 0 auto;
-}
-
-.site .footer .contact a:hover {
-  color: #636B96;
-}
-
-.site .footer p {
-  display: inline-flex;
-}
-
-.site .footer .rss {
-  margin-top: 1.1em;
-  margin-right: -.2em;
-  float: right;
-}
-
-.site .footer .rss img {
-  border: 0;
-}
-
-/*****************************************************************************/
-/*
-/* Posts
-/*
-/*****************************************************************************/
-
-.post a {
-  color: white;
-  background-color: #FF96A7;
-  text-decoration: none;
-  padding: 1px;
-}
-
-.post a:hover {
-  color: gray;
-  background-color: #F9F9F9;
-
-.post ul, .post ol {
-  margin-left: 1.35em;
-}")
+                 [:.post
+                  [:a {:color "white"
+                       :background-color "#FF96A7"
+                       :text-decoration "none"
+                       :padding "1px"}
+                   [:&:hover {:color "gray"
+                              :background-color "#F9F9F9"}]]
+                  [:ul :ol {:margin-left "1.35em"}]]))
 
 (defn page [title content]
   (html [:h1 title]
