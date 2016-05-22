@@ -28,8 +28,7 @@
   (->> post-string
        (#(clojure.string/split % #"\n"))
        (take 5) ;; first 5 lines
-       (drop 1) ;; drop initial "---"
-       (take-while #(not= (first %) \-))
+       (remove #(clojure.string/starts-with? % "---")) ;; remove `---' lines
        (map #(clojure.string/split % #": "))
        (into {})))
 
