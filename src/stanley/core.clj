@@ -25,12 +25,11 @@
        (clojure.string/join "\n")))
 
 (defn get-frontmatter [post-string]
-  (->> post-string
-       (#(clojure.string/split % #"\n"))
-       (take 5) ;; first 5 lines
-       (remove #(clojure.string/starts-with? % "---")) ;; remove `---' lines
-       (map #(clojure.string/split % #": "))
-       (into {})))
+  (let [[_ fm] (re-find #"(?s)-{3}(.+)\n-{3}\n" post-string)]
+    (->> (clojure.string/split fm #"\n")
+         (remove clojure.string/blank?)
+         (map #(clojure.string/split % #": "))
+         (into {}))))
 
 (defn change-ext [filename n replacement]
   (str (clojure.string/join

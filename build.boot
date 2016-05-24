@@ -3,7 +3,7 @@
 
 (set-env! :resource-paths #{"resources" "src"}
           :source-paths   #{"test"}
-          :dependencies   '[[org.clojure/clojure "RELEASE"]
+          :dependencies   '[[org.clojure/clojure "1.8.0"]
                             [markdown-clj "0.9.89"]
                             [clj-rss "0.2.3"]
                             [hiccup "1.0.5"]

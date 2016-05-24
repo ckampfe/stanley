@@ -18,7 +18,8 @@
 (deftest get-frontmatter-test
   (let [frontmatter "---\ntitle: some title\ncreated: a date\nfoo: bar\n---\n"
         post-body "some content"
-        post (str frontmatter post-body)]
+        post (str frontmatter post-body)
+        bullshit-post (str frontmatter post-body "\n--------------\n" post-body)]
 
     (testing "it gets frontmatter"
       (is (map? (get-frontmatter post)))
@@ -30,7 +31,12 @@
     (testing "it does not get content"
       (is (not (clojure.string/starts-with?
                 (get-frontmatter post)
-                post-body))))))
+                post-body))))
+
+    (testing "it does not get content with extra -------"
+      (is (not (clojure.string/starts-with?
+                (get-frontmatter bullshit-post)
+                bullshit-post))))))
 
 (deftest change-ext-test
   (let [filename "foo.html"]
