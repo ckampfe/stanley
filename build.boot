@@ -1,9 +1,10 @@
 (def project 'stanley)
-(def version "0.0.1")
+(def version "0.0.2")
 
 (set-env! :resource-paths #{"resources" "src"}
           :source-paths   #{"test"}
-          :dependencies   '[[org.clojure/clojure "1.9.0-alpha10"]
+          :dependencies   '[[org.clojure/clojure "1.9.0-alpha12"]
+                            [org.clojure/test.check "0.9.0" :scope "dev"]
                             [markdown-clj "0.9.89"]
                             [clj-rss "0.2.3"]
                             [hiccup "1.0.5"]

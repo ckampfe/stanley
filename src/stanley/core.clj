@@ -1,5 +1,17 @@
 (ns stanley.core
-  (:require [stanley.templates :as templates]
+  "
+  main module for building the site.
+  to run the specs, export the namespace to your repl
+  and run:
+
+  (->> (clojure.spec.test/instrument)
+       clojure.spec.test/check
+       clojure.spec.test/summarize-results
+       clojure.pprint/pprint)
+  "
+  (:require [clojure.spec :as s]
+            [clojure.spec.gen :as gen]
+            [stanley.templates :as templates]
             [stanley.rss :as rss]
             [markdown.core :as md :refer [md-to-html-string]])
   (:import [java.io File])
@@ -7,37 +19,111 @@
 
 (def ^:dynamic build-dir "build")
 
-(defn files [dir]
+(defn files
+  "Given a `dir', list the files,
+  removing hidden files and directories, mapping files to
+  their canonical path"
+  [dir]
   (->> (File. dir)
        (.listFiles)
        (remove #(.isHidden %))
        (remove #(.isDirectory %))
        (map #(.getCanonicalPath %))))
 
-(defn md-files [dir]
+(defn md-files
+  "fetch files in `dir' and select only the ones that
+  end in `.md'"
+  [dir]
   (->> (files dir)
        (filter #(clojure.string/ends-with? % ".md"))))
 
-(defn get-content [post-string]
+(def gen-post
+  "a generator to create a post, which is a frontmatter and a body"
+  (gen/fmap (fn [[s1 s2 s3 s4]] (str "---\n"
+                                     "title: "   s1 "\n"
+                                     "created: " s2 "\n"
+                                     "layout: "  s3 "\n"
+                                     "---\n"
+                                     s4))
+            (gen/tuple (gen/not-empty (gen/string-alphanumeric))
+                       (gen/not-empty (gen/string-alphanumeric))
+                       (gen/not-empty (gen/string-alphanumeric))
+                       (gen/not-empty (gen/string-alphanumeric)))))
+
+(s/def ::filename (s/and string?
+                         #(not= % "")))
+
+(def frontmatter-regex #"(?s)-{3}(.+)\n-{3}\n.+")
+
+(s/def ::post-string (s/with-gen (s/and #(not= % "")
+                                        #(re-matches frontmatter-regex %))
+                       (fn [] gen-post)))
+
+(s/fdef get-content
+        :args (s/cat ::post-string ::post-string)
+        :ret (s/and string?
+                    #(not= % "")))
+
+(defn get-content
+  "Given a `post-string', split on newlines and drop
+  the first 5 lines, joining the resulting collection into
+  a string."
+  [post-string]
   (->> post-string
        (#(clojure.string/split % #"\n"))
        (drop 5)
        (clojure.string/join "\n")))
 
-(defn get-frontmatter [post-string]
-  (let [[_ fm] (re-find #"(?s)-{3}(.+)\n-{3}\n" post-string)]
+(s/fdef get-frontmatter
+        :args (s/cat ::post-string ::post-string)
+        :ret (s/keys :unreq [:title :created]
+                     :unopt [:layout]))
+
+(defn get-frontmatter
+  "Given a `post-string', return a map of the colon-separated
+  frontmatter."
+  [post-string]
+  (let [[_ fm] (re-find frontmatter-regex post-string)]
     (->> (clojure.string/split fm #"\n")
          (remove clojure.string/blank?)
          (map #(clojure.string/split % #": "))
-         (into {}))))
+         (into {})
+         (reduce-kv (fn [result k v]
+                      (assoc result
+                             (keyword k)
+                             v))
+                    {}))))
 
-(defn change-ext [filename n replacement]
+(s/fdef change-ext
+        :args (s/cat ::filename ::filename
+                     ::n (s/and integer?
+                                (fn [n] (>= 0 n)))
+                     ::replacement ::filename)
+        :ret string?
+        :fn #(s/and (clojure.string/includes? (:ret %)
+                                              (::filename (:args %)))
+                    (clojure.string/includes? (:ret %)
+                                              (::replacement (:args %)))))
+
+(defn change-ext
+  "Given a filename, the length of an extension (including the dot),
+  and a new extension, return a file with the new extension."
+  [filename n replacement]
   (str (clojure.string/join
         (drop-last n filename)) replacement))
 
+(s/fdef to-build-dir
+        :args (s/cat ::filename ::filename)
+        :ret (s/and #(clojure.string/includes? % "/")
+                    string?)
+        :fn (s/spec #(= (str build-dir "/" (::filename (:args %)))
+                        (:ret %))))
+
 (defn to-build-dir [filename] (str build-dir "/" filename))
 
-(defn write! [names contents]
+(defn write!
+  "Eagerly write the seq of contents to the seq of names."
+  [names contents]
   (dorun (map #(spit (to-build-dir %1) %2)
               names
               contents)))
