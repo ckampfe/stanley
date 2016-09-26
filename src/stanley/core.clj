@@ -139,7 +139,7 @@
         page-contents           (map get-content pages)
         page-frontmatters       (map get-frontmatter pages)
         page-formatted-contents (map md-to-html-string page-contents)
-        page-titles             (map #(get % "title") page-frontmatters)
+        page-titles             (map #(get % :title) page-frontmatters)
         page-templates          (->> (map templates/page page-titles page-formatted-contents)
                                      (map templates/layout page-titles))
 
@@ -151,8 +151,8 @@
         post-frontmatters       (map get-frontmatter posts)
         post-contents           (map get-content posts)
         post-formatted-contents (map md-to-html-string post-contents)
-        post-titles             (map #(get % "title") post-frontmatters)
-        post-created-ats        (map #(get % "created") post-frontmatters)
+        post-titles             (map #(get % :title) post-frontmatters)
+        post-created-ats        (map #(get % :created) post-frontmatters)
         post-templates          (->> (map templates/post post-titles
                                           post-created-ats
                                           post-formatted-contents)
