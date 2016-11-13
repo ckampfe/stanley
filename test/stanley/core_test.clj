@@ -24,7 +24,7 @@
     (testing "it gets frontmatter"
       (is (map? (get-frontmatter post)))
       (is (= (keys (get-frontmatter post))
-             (list "title" "created" "foo")))
+             (list :title :created :foo)))
       (is (= (vals (get-frontmatter post))
              (list "some title" "a date" "bar"))))
 
