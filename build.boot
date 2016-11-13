@@ -35,4 +35,38 @@
   (require '[stanley.core :as app])
   (apply (resolve 'app/-main) args))
 
+(deftask publish
+  "Publish to the blog."
+  [u user       VAL str "The user on the host machine"
+   i host       VAL str "The host machine, ie foo.com"
+   d target-dir VAL str "The target dir, ie ~"]
+  (let [target-dir (if (seq target-dir) target-dir "~")
+        cwd (->> (clojure.java.shell/sh "pwd") :out (clojure.string/trim-newline))
+        jar-location (str cwd "/target/stanley-" version "-standalone.jar")]
+
+    (println (:err (clojure.java.shell/sh "time"
+                                          "java"
+                                          "-jar"
+                                          jar-location)))
+    (println "built site")
+
+    (clojure.java.shell/sh "tar"
+                           "-czf"
+                           "./build.tgz"
+                           "build")
+    (println "created tarball at build.tgz")
+
+    (clojure.java.shell/sh "scp"
+                           "build.tgz"
+                           (str user "@" host ":" target-dir))
+    (println "scp'd build.tgz to" (str user "@" host ":" target-dir))
+
+    (println (:out (clojure.java.shell/sh
+                    "ssh"
+                    "-t"
+                    (str user
+                         "@"
+                         host)
+                    (str "hostname; cd " target-dir "; tar -xvf build.tgz; sudo cp -r build/* /usr/share/nginx/www; cd ~; exit"))))))
+
 (require '[adzerk.boot-test :refer [test]])
