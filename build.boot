@@ -1,7 +1,7 @@
 (def project 'stanley)
 (def version "0.0.3")
 
-(set-env! :resource-paths #{"resources" "src"}
+(set-env! :resource-paths #{"src"}
           :source-paths   #{"test"}
           :dependencies   '[[org.clojure/clojure "1.9.0-alpha14"]
                             [org.clojure/test.check "0.9.0" :scope "dev"]
@@ -35,20 +35,24 @@
   (require '[stanley.core :as app])
   (apply (resolve 'app/-main) args))
 
+(defn seconds-from [time]
+  (let [finish-time (java.time.Instant/now)]
+    (/ (->> time
+            .toEpochMilli
+            (.minusMillis finish-time)
+            .toEpochMilli)
+       1000.0)))
+
 (deftask publish
   "Publish to the blog."
   [u user       VAL str "The user on the host machine"
    i host       VAL str "The host machine, ie foo.com"
    d target-dir VAL str "The target dir, ie ~"]
   (let [target-dir (if (seq target-dir) target-dir "~")
-        cwd (->> (clojure.java.shell/sh "pwd") :out (clojure.string/trim-newline))
-        jar-location (str cwd "/target/stanley-" version "-standalone.jar")]
+        start-time (java.time.Instant/now)]
 
-    (println (:err (clojure.java.shell/sh "time"
-                                          "java"
-                                          "-jar"
-                                          jar-location)))
-    (println "built site")
+    (run)
+    (println "built site in" (seconds-from start-time) "seconds")
 
     (clojure.java.shell/sh "tar"
                            "-czf"
@@ -56,9 +60,9 @@
                            "build")
     (println "created tarball at build.tgz")
 
-    (clojure.java.shell/sh "scp"
-                           "build.tgz"
-                           (str user "@" host ":" target-dir))
+    (println (clojure.java.shell/sh "scp"
+                                    "build.tgz"
+                                    (str user "@" host ":" target-dir)))
     (println "scp'd build.tgz to" (str user "@" host ":" target-dir))
 
     (println (:out (clojure.java.shell/sh
