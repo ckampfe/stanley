@@ -84,15 +84,19 @@
   frontmatter."
   [post-string]
   (let [[_ fm] (re-find frontmatter-regex post-string)]
-    (->> (clojure.string/split fm #"\n")
-         (remove clojure.string/blank?)
-         (map #(clojure.string/split % #": "))
-         (into {})
-         (reduce-kv (fn [result k v]
-                      (assoc result
-                             (keyword k)
-                             v))
-                    {}))))
+    (try
+      (->> (clojure.string/split fm #"\n")
+           (remove clojure.string/blank?)
+           (map #(clojure.string/split % #": "))
+           (into {})
+           (reduce-kv (fn [result k v]
+                        (assoc result
+                               (keyword k)
+                               v))
+                      {}))
+    (catch IllegalArgumentException
+           e
+           (println "something went wrong with frontmatter" fm)))))
 
 (s/fdef change-ext
         :args (s/cat ::filename ::filename
