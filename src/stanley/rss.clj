@@ -30,10 +30,10 @@
                   :title "Clark Kampfe"
                   :link "https://zeroclarkthirty.com"
                   :description "Clark Kampfe - zeroclarkthirty.com")
-           (map (fn [[title post-name created-at formatted-contents]]
-                  (assoc {}
-                         :title title
-                         :link (str "https://zeroclarkthirty.com/" post-name)
-                         :pubDate (str->Date created-at)
-                         :description formatted-contents))
-                sorted-by-date-descending))))
+           (pmap (fn [[title post-name created-at formatted-contents]]
+                   (assoc {}
+                          :title title
+                          :link (str "https://zeroclarkthirty.com/" post-name)
+                          :pubDate (str->Date created-at)
+                          :description formatted-contents))
+                 sorted-by-date-descending))))

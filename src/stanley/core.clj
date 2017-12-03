@@ -94,9 +94,9 @@
                                (keyword k)
                                v))
                       {}))
-    (catch IllegalArgumentException
-           e
-           (println "something went wrong with frontmatter" fm)))))
+      (catch IllegalArgumentException
+             e
+        (println "something went wrong with frontmatter" fm)))))
 
 (s/fdef change-ext
         :args (s/cat ::filename ::filename
@@ -154,7 +154,7 @@
         posts                   (map slurp post-paths)
         post-frontmatters       (map get-frontmatter posts)
         post-contents           (map get-content posts)
-        post-formatted-contents (map md-to-html-string post-contents)
+        post-formatted-contents (pmap md-to-html-string post-contents)
         post-titles             (map #(get % :title) post-frontmatters)
         post-created-ats        (map #(get % :created) post-frontmatters)
         post-templates          (->> (map templates/post post-titles
