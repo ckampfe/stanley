@@ -3,8 +3,9 @@
 
 (set-env! :resource-paths #{"src"}
           :source-paths   #{"test"}
-          :dependencies   '[[org.clojure/clojure "1.9.0-alpha14"]
-                            [org.clojure/test.check "0.9.0" :scope "dev"]
+          :dependencies   '[[org.clojure/clojure "1.9.0-RC2"]
+                            [org.clojure/spec.alpha "0.1.123"]
+                            [org.clojure/test.check "0.10.0-alpha2" :scope "dev"]
                             [markdown-clj "0.9.89"]
                             [clj-rss "0.2.3"]
                             [hiccup "1.0.5"]

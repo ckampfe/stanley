@@ -9,8 +9,8 @@
        clojure.spec.test/summarize-results
        clojure.pprint/pprint)
   "
-  (:require [clojure.spec :as s]
-            [clojure.spec.gen :as gen]
+  (:require [clojure.spec.alpha :as s]
+            [clojure.spec.gen.alpha :as gen]
             [stanley.templates :as templates]
             [stanley.rss :as rss]
             [markdown.core :as md :refer [md-to-html-string]])

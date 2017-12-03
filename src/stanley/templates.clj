@@ -98,14 +98,19 @@
         [:div {:class "post"} content]))
 
 (defn index [post-paths titles created-ats]
-  (letfn [(link [filename title created-at]
-            [:li
-             [:a {:href filename} title]
-             [:span created-at]])]
+  (let [sorted-by-date-descending (->> (interleave post-paths titles created-ats)
+                                       (partition 3)
+                                       (sort-by (fn [[_ _ created-at]] created-at))
+                                       reverse)]
 
-    (html [:div {:id "home"}
-           [:ul {:class "posts"}
-            (map link post-paths titles created-ats)]])))
+    (letfn [(link [[filename title created-at]]
+              [:li
+               [:a {:href filename} title]
+               [:span created-at]])]
+
+      (html [:div {:id "home"}
+             [:ul {:class "posts"}
+              (map link sorted-by-date-descending)]]))))
 
 (defn layout [title content]
   (html5 [:head
