@@ -1,6 +1,6 @@
 (ns stanley.rss
   (:require [clj-rss.core :as rs])
-  (:import [java.util GregorianCalendar]))
+  (:import [java.time LocalDate]))
 
 (defn str->Date [date-string]
   (let [date-vec (map #(Integer. %) (clojure.string/split date-string #"-"))
@@ -8,8 +8,8 @@
         month (nth date-vec 1)
         day (nth date-vec 2)]
 
-    (->> (GregorianCalendar. year month day)
-         (.getTime))))
+    (->> (LocalDate/of year month day)
+         (java.sql.Date/valueOf))))
 
 (defn feed [post-titles
             html-post-names
