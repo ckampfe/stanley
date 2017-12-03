@@ -6,10 +6,10 @@
           :dependencies   '[[org.clojure/clojure "1.9.0-RC2"]
                             [org.clojure/spec.alpha "0.1.123"]
                             [org.clojure/test.check "0.10.0-alpha2" :scope "dev"]
-                            [markdown-clj "0.9.89"]
+                            [markdown-clj "1.0.1"]
                             [clj-rss "0.2.3"]
                             [hiccup "1.0.5"]
-                            [garden "1.3.2"]
+                            [garden "1.3.3"]
                             [adzerk/boot-test "RELEASE" :scope "test"]])
 
 (task-options!
