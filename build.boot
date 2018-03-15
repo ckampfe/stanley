@@ -52,6 +52,8 @@
   (let [target-dir (if (seq target-dir) target-dir "~")
         start-time (java.time.Instant/now)]
 
+    (clojure.java.shell/sh "mkdir" "build")
+
     (run)
     (println "built site in" (seconds-from start-time) "seconds")
 
