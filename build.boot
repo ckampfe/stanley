@@ -34,7 +34,8 @@
   "Run the project."
   [a args ARG [str] "the arguments for the application."]
   (require '[stanley.core :as app])
-  (apply (resolve 'app/-main) args))
+  (apply (resolve 'app/-main) args)
+  identity)
 
 (defn seconds-from [time]
   (let [finish-time (java.time.Instant/now)]
@@ -74,6 +75,7 @@
                     (str user
                          "@"
                          host)
-                    (str "hostname; cd " target-dir "; tar -xvf build.tgz; sudo cp -r build/* /usr/share/nginx/www; cd ~; exit"))))))
+                    (str "hostname; cd " target-dir "; tar -xvf build.tgz; sudo cp -r build/* /usr/share/nginx/www; cd ~; exit")))))
+  identity)
 
 (require '[adzerk.boot-test :refer [test]])
