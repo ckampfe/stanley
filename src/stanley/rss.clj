@@ -1,15 +1,20 @@
 (ns stanley.rss
   (:require [clj-rss.core :as rs])
-  (:import [java.time LocalDate]))
+  (:import [java.time LocalDate]
+           [java.lang Integer])
+  (:gen-class))
 
 (defn str->Date [date-string]
-  (let [date-vec (map #(Integer. %) (clojure.string/split date-string #"-"))
+  (let [date-vec (map #(new java.lang.Integer ^java.lang.String %)
+                      (clojure.string/split date-string #"-"))
         year (nth date-vec 0)
         month (nth date-vec 1)
         day (nth date-vec 2)]
 
-    (->> (LocalDate/of year month day)
-         (java.sql.Date/valueOf))))
+    (java.sql.Date/valueOf ^java.time.LocalDate (LocalDate/of
+                                                  ^java.lang.Integer year
+                                                  ^java.lang.Integer month
+                                                  ^java.lang.Integer day))))
 
 (defn feed [post-titles
             html-post-names

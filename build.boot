@@ -13,7 +13,8 @@
                             [adzerk/boot-test "RELEASE" :scope "test"]])
 
 (task-options!
- aot {:namespace   #{'stanley.core}}
+ aot {:namespace   #{'stanley.core}
+      :all true}
  pom {:project     project
       :version     version
       :description "build my site"

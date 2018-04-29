@@ -11,10 +11,10 @@
   "
   (:require [clojure.spec.alpha :as s]
             [clojure.spec.gen.alpha :as gen]
+            [clojure.java.io :as io]
             [stanley.templates :as templates]
             [stanley.rss :as rss]
             [markdown.core :as md :refer [md-to-html-string]])
-  (:import [java.io File])
   (:gen-class))
 
 (def ^:dynamic build-dir "build")
@@ -24,11 +24,11 @@
   removing hidden files and directories, mapping files to
   their canonical path"
   [dir]
-  (->> (File. dir)
-       (.listFiles)
-       (remove #(.isHidden %))
-       (remove #(.isDirectory %))
-       (map #(.getCanonicalPath %))))
+  (let [f ^java.io.File (io/file dir)]
+    (->> (.listFiles ^java.io.File f)
+         (remove #(.isHidden ^java.io.File %))
+         (remove #(.isDirectory ^java.io.File %))
+         (map #(.getCanonicalPath ^java.io.File %)))))
 
 (defn md-files
   "fetch files in `dir' and select only the ones that
@@ -176,4 +176,5 @@
     (write! html-page-names page-templates)
     (write! html-post-names post-templates)
     (write! ["index.html"] [index-template])
-    (write! ["feed"] [rss-feed])))
+    (write! ["feed"] [rss-feed])
+    (shutdown-agents)))
