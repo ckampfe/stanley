@@ -38,6 +38,12 @@
   (apply (resolve 'app/-main) args)
   identity)
 
+(deftask build-blog
+  [a args ARG [str] "the arguments for the application."]
+  (require '[stanley.core :as app])
+  (apply (resolve 'app/build-blog) args)
+  identity)
+
 (defn seconds-from [time]
   (let [finish-time (java.time.Instant/now)]
     (/ (->> time
@@ -56,7 +62,7 @@
 
     (clojure.java.shell/sh "mkdir" "build")
 
-    (run)
+    (build-blog)
     (println "built site in" (seconds-from start-time) "seconds")
 
     (clojure.java.shell/sh "tar"

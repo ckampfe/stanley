@@ -132,9 +132,7 @@
               names
               contents)))
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
+(defn build-blog []
   (let [page-paths              (md-files "./pages")
         page-file-names         (map #(last (clojure.string/split % #"/"))
                                      page-paths)
@@ -176,5 +174,10 @@
     (write! html-page-names page-templates)
     (write! html-post-names post-templates)
     (write! ["index.html"] [index-template])
-    (write! ["feed"] [rss-feed])
-    (shutdown-agents)))
+    (write! ["feed"] [rss-feed])))
+
+(defn -main
+  "I don't do a whole lot ... yet."
+  [& args]
+  (build-blog)
+  (shutdown-agents))
