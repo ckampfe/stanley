@@ -152,7 +152,11 @@
         posts                   (map slurp post-paths)
         post-frontmatters       (map get-frontmatter posts)
         post-contents           (map get-content posts)
-        post-formatted-contents (pmap md-to-html-string post-contents)
+        post-formatted-contents (pmap (fn [s]
+                                        (md-to-html-string
+                                         s
+                                         :code-style (fn [lang] (str "class=\"language-" lang "\""))))
+                                      post-contents)
         post-titles             (map #(get % :title) post-frontmatters)
         post-created-ats        (map #(get % :created) post-frontmatters)
         post-templates          (->> (map templates/post post-titles
@@ -170,6 +174,8 @@
                                           post-created-ats
                                           post-formatted-contents)]
 
+    (write! ["prism.css"] (vector (slurp (io/resource "prism.css"))))
+    (write! ["prism.js"] (vector (slurp (io/resource "prism.js"))))
     (write! ["main.css"] [templates/stylesheet])
     (write! html-page-names page-templates)
     (write! html-post-names post-templates)

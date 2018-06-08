@@ -119,6 +119,7 @@
           [:title (if title
                     (str title " - Clark Kampfe"))]
           [:meta {:name "viewport" :content "width=device-width"}]
+          [:link {:rel "stylesheet" :href "prism.css"}]
           [:link {:rel "stylesheet" :href "main.css"}]
           [:link {:rel "icon" :type "image/png" :href "/favicon"}]]
 
@@ -138,4 +139,6 @@
               [:p
                [:a {:href "http://github.com/ckampfe/"} "github"]
                [:a {:href "http://twitter.com/clarkkampfe"} "twitter"]
-               [:br]]]]]]]))
+               [:br]]]]]]
+
+          [:script {:src "prism.js"}]]))

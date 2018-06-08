@@ -1,12 +1,12 @@
 (def project 'stanley)
 (def version "0.0.3")
 
-(set-env! :resource-paths #{"src"}
+(boot.core/set-env! :resource-paths #{"src" "resources"}
           :source-paths   #{"test"}
           :dependencies   '[[org.clojure/clojure "1.9.0"]
                             [org.clojure/spec.alpha "0.1.143"]
                             [org.clojure/test.check "0.10.0-alpha2" :scope "dev"]
-                            [markdown-clj "1.0.1"]
+                            [markdown-clj "1.0.2"]
                             [clj-rss "0.2.3"]
                             [hiccup "1.0.5"]
                             [garden "1.3.3"]
