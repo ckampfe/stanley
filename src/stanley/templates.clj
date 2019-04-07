@@ -3,7 +3,10 @@
         [hiccup.page :refer [html5]])
   (:require [garden.core :refer [css]]))
 
-(def stylesheet (css
+(defmacro comp-css [& some-css]
+  (apply css some-css))
+
+(def stylesheet (comp-css
                  [:* {:margin 0
                       :padding 0
                       :color "#444"}]

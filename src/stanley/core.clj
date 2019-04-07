@@ -12,12 +12,15 @@
   (:require [clojure.spec.alpha :as s]
             [clojure.spec.gen.alpha :as gen]
             [clojure.java.io :as io]
+            [instaparse.core :as insta]
             [stanley.templates :as templates]
             [stanley.rss :as rss]
             [markdown.core :as md :refer [md-to-html-string]])
   (:gen-class))
 
 (def ^:dynamic build-dir "build")
+
+(set! *warn-on-reflection* true)
 
 (defn files
   "Given a `dir', list the files,
@@ -37,77 +40,42 @@
   (->> (files dir)
        (filter #(clojure.string/ends-with? % ".md"))))
 
-(def gen-post
-  "a generator to create a post, which is a frontmatter and a body"
-  (gen/fmap (fn [[s1 s2 s3 s4]] (str "---\n"
-                                     "title: "   s1 "\n"
-                                     "created: " s2 "\n"
-                                     "layout: "  s3 "\n"
-                                     "---\n"
-                                     s4))
-            (gen/tuple (gen/not-empty (gen/string-alphanumeric))
-                       (gen/not-empty (gen/string-alphanumeric))
-                       (gen/not-empty (gen/string-alphanumeric))
-                       (gen/not-empty (gen/string-alphanumeric)))))
+(def post-grammar
+  "S = Frontmatter PostBody
+   Frontmatter = <Dashes> <Newlines> KVS <Newlines> <Dashes> <Newlines>
+   Dashes = '---'
 
-(s/def ::filename (s/and string?
-                         #(not= % "")))
+   KVS = KV+
+   KV = K <':'> <' '> V <'\\n'>
 
-(def frontmatter-regex #"(?s)-{3}(.+)\n-{3}\n.+")
+   <K> = #'\\w+'
+   <V> = #'(.)+'
 
-(s/def ::post-string (s/with-gen (s/and #(not= % "")
-                                        #(re-matches frontmatter-regex %))
-                       (fn [] gen-post)))
+   Newlines = '\\n'*
 
-(s/fdef get-content
-        :args (s/cat ::post-string ::post-string)
-        :ret (s/and string?
-                    #(not= % "")))
+   <PostBody> = #'(?s:.)+'
+  ")
 
-(defn get-content
-  "Given a `post-string', split on newlines and drop
-  the first 5 lines, joining the resulting collection into
-  a string."
+(def post-parser (insta/parser post-grammar))
+
+(defn parse-post
   [post-string]
-  (->> post-string
-       (#(clojure.string/split % #"\n"))
-       (drop 5)
-       (clojure.string/join "\n")))
-
-(s/fdef get-frontmatter
-        :args (s/cat ::post-string ::post-string)
-        :ret (s/keys :unreq [:title :created]
-                     :unopt [:layout]))
-
-(defn get-frontmatter
-  "Given a `post-string', return a map of the colon-separated
-  frontmatter."
-  [post-string]
-  (let [[_ fm] (re-find frontmatter-regex post-string)]
-    (try
-      (->> (clojure.string/split fm #"\n")
-           (remove clojure.string/blank?)
-           (map #(clojure.string/split % #": "))
-           (into {})
-           (reduce-kv (fn [result k v]
-                        (assoc result
-                               (keyword k)
-                               v))
-                      {}))
-      (catch IllegalArgumentException
-             e
-        (println "something went wrong with frontmatter" fm)))))
-
-(s/fdef change-ext
-        :args (s/cat ::filename ::filename
-                     ::n (s/and integer?
-                                (fn [n] (>= 0 n)))
-                     ::replacement ::filename)
-        :ret string?
-        :fn #(s/and (clojure.string/includes? (:ret %)
-                                              (::filename (:args %)))
-                    (clojure.string/includes? (:ret %)
-                                              (::replacement (:args %)))))
+  (let [post-parse-tree (insta/parse post-parser post-string)]
+    (if (insta/failure? post-parse-tree)
+      (do
+        (instaparse.failure/pprint-failure post-parse-tree)
+        (throw (RuntimeException. ^String
+                (.toString ^instaparse.gll.Failure
+                 (insta/get-failure post-parse-tree)))))
+      (insta/transform {:KV (fn [k v]
+                              (assoc {}
+                                     (keyword k)
+                                     v))
+                        :Frontmatter (fn [kvs]
+                                       (apply merge (drop 1 kvs)))
+                        :Postbody (fn [postbody] (drop 1 postbody))
+                        :S (fn [frontmatter body] {:frontmatter frontmatter :content body})}
+                       post-parse-tree))))
 
 (defn change-ext
   "Given a filename, the length of an extension (including the dot),
@@ -115,13 +83,6 @@
   [filename n replacement]
   (str (clojure.string/join
         (drop-last n filename)) replacement))
-
-(s/fdef to-build-dir
-        :args (s/cat ::filename ::filename)
-        :ret (s/and #(clojure.string/includes? % "/")
-                    string?)
-        :fn (s/spec #(= (str build-dir "/" (::filename (:args %)))
-                        (:ret %))))
 
 (defn to-build-dir [filename] (str build-dir "/" filename))
 
@@ -138,10 +99,11 @@
                                      page-paths)
         html-page-names         (map #(change-ext % 3 ".html") page-file-names)
         pages                   (map slurp page-paths)
-        page-contents           (map get-content pages)
-        page-frontmatters       (map get-frontmatter pages)
+        pages-data              (map parse-post pages)
+        page-contents           (map :content pages-data)
+        page-frontmatters       (map :frontmatter pages-data)
         page-formatted-contents (map md-to-html-string page-contents)
-        page-titles             (map #(get % :title) page-frontmatters)
+        page-titles             (map :title page-frontmatters)
         page-templates          (->> (map templates/page page-titles page-formatted-contents)
                                      (map templates/layout page-titles))
 
@@ -150,15 +112,16 @@
                                      post-paths)
         html-post-names         (map #(change-ext % 3 ".html") post-file-names)
         posts                   (map slurp post-paths)
-        post-frontmatters       (map get-frontmatter posts)
-        post-contents           (map get-content posts)
+        posts-data              (map parse-post posts)
+        post-frontmatters       (map :frontmatter posts-data)
+        post-contents           (map :content posts-data)
         post-formatted-contents (pmap (fn [s]
                                         (md-to-html-string
                                          s
                                          :code-style (fn [lang] (str "class=\"language-" lang "\""))))
                                       post-contents)
-        post-titles             (map #(get % :title) post-frontmatters)
-        post-created-ats        (map #(get % :created) post-frontmatters)
+        post-titles             (map :title post-frontmatters)
+        post-created-ats        (map :created post-frontmatters)
         post-templates          (->> (map templates/post post-titles
                                           post-created-ats
                                           post-formatted-contents)
@@ -174,8 +137,8 @@
                                           post-created-ats
                                           post-formatted-contents)]
 
-    (write! ["prism.css"] (vector (slurp (io/resource "prism.css"))))
-    (write! ["prism.js"] (vector (slurp (io/resource "prism.js"))))
+    (write! ["prism.css"] (vector (slurp "resources/prism.css" #_(io/resource "prism.css"))))
+    (write! ["prism.js"] (vector (slurp "resources/prism.js" #_(io/resource "prism.js"))))
     (write! ["main.css"] [templates/stylesheet])
     (write! html-page-names page-templates)
     (write! html-post-names post-templates)

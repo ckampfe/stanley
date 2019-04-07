@@ -1,11 +1,11 @@
 {:paths ["resources" "src"]
  :deps {org.clojure/clojure {:mvn/version "1.10.0"}
         org.clojure/spec.alpha {:mvn/version "0.1.143"}
-        org.clojure/test.check {:mvn/version "0.10.0-alpha2" :scope "dev"}
-        markdown-clj {:mvn/version "1.0.2"}
+        instaparse {:mvn/version "1.4.10"}
+        markdown-clj {:mvn/version "1.0.7"}
         clj-rss {:mvn/version "0.2.3"}
         hiccup {:mvn/version "1.0.5"}
-        garden {:mvn/version "1.3.3"}}
+        garden {:mvn/version "1.3.6"}}
  :aliases
  {:cambada {:extra-deps
             {luchiniatwork/cambada
