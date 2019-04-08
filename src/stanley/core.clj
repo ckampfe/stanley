@@ -9,13 +9,11 @@
        clojure.spec.test/summarize-results
        clojure.pprint/pprint)
   "
-  (:require [clojure.spec.alpha :as s]
-            [clojure.spec.gen.alpha :as gen]
-            [clojure.java.io :as io]
+  (:require [clojure.java.io :as io]
             [instaparse.core :as insta]
-            [stanley.templates :as templates]
+            [markdown.core :as md :refer [md-to-html-string]]
             [stanley.rss :as rss]
-            [markdown.core :as md :refer [md-to-html-string]])
+            [stanley.templates :as templates])
   (:gen-class))
 
 (def ^:dynamic build-dir "build")
